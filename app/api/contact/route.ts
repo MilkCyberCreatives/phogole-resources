@@ -1,101 +1,56 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 
-export const runtime = "nodejs";
-
-type Payload = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  service?: string;   // from homepage form
-  subject?: string;   // optional (other forms)
-  message?: string;
-  website?: string;   // honeypot
-};
-
-function isEmail(value: unknown): boolean {
-  if (typeof value !== "string") return false;
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
-    const contentType = req.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
+    const body = await req.json();
+
+    const name = String(body?.name || "").trim();
+    const email = String(body?.email || "").trim();
+    const phone = String(body?.phone || "").trim();
+    const service = String(body?.service || "").trim();
+    const message = String(body?.message || "").trim();
+
+    // Honeypot (bots usually fill it)
+    const website = String(body?.website || "").trim();
+    if (website) {
+      return NextResponse.json({ ok: true }); // silently succeed
+    }
+
+    if (!name || !email || !message) {
       return NextResponse.json(
-        { message: "Invalid content type." },
+        { error: "Missing required fields." },
         { status: 400 }
       );
     }
 
-    const body = (await req.json()) as Payload;
-
-    // Honeypot (bots fill hidden field)
-    if (body.website && body.website.trim().length > 0) {
-      return NextResponse.json({ ok: true }, { status: 200 });
-    }
-
-    const name = (body.name || "").trim();
-    const email = (body.email || "").trim();
-    const phone = (body.phone || "").trim();
-    const subject = (body.subject || body.service || "General enquiry").trim();
-    const message = (body.message || "").trim();
-
-    // Validation
-    if (name.length < 2) {
-      return NextResponse.json({ message: "Name is required." }, { status: 400 });
-    }
-
-    if (!isEmail(email)) {
-      return NextResponse.json(
-        { message: "A valid email is required." },
-        { status: 400 }
-      );
-    }
-
-    if (subject.length < 3) {
-      return NextResponse.json(
-        { message: "Subject is required." },
-        { status: 400 }
-      );
-    }
-
-    if (message.length < 15) {
-      return NextResponse.json(
-        { message: "Message is too short." },
-        { status: 400 }
-      );
-    }
-
-    // Safety limits
-    if (
-      message.length > 5000 ||
-      subject.length > 200 ||
-      name.length > 120
-    ) {
-      return NextResponse.json(
-        { message: "Input is too long." },
-        { status: 400 }
-      );
-    }
-
-    // ✅ Server-side handling (visible in Vercel logs)
-    console.log("[CONTACT FORM SUBMISSION]", {
-      name,
-      email,
-      phone,
-      subject,
-      message,
-      ip: req.headers.get("x-forwarded-for") || "unknown",
-      at: new Date().toISOString(),
+    // Send to your business inbox
+    await resend.emails.send({
+      from: "Phogole Resources <no-reply@phogoleresources.co.za>",
+      to: ["info@phogoleresources.co.za"],
+      replyTo: email,
+      subject: `New Website Enquiry: ${service || "general"}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6">
+          <h2>New Website Enquiry</h2>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Phone:</strong> ${phone || "-"}</p>
+          <p><strong>Service:</strong> ${service || "general"}</p>
+          <hr />
+          <p><strong>Message:</strong></p>
+          <p>${message.replace(/\n/g, "<br/>")}</p>
+        </div>
+      `,
     });
 
-    return NextResponse.json({ ok: true }, { status: 200 });
-  } catch (error) {
-    console.error("[CONTACT FORM ERROR]", error);
-
+    return NextResponse.json({ ok: true });
+  } catch (err) {
     return NextResponse.json(
-      { message: "Invalid request." },
-      { status: 400 }
+      { error: "Server error. Please try again." },
+      { status: 500 }
     );
   }
 }
