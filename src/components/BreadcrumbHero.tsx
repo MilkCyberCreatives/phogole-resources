@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import Reveal from "./ui/Reveal";
 
@@ -21,18 +22,19 @@ export default function BreadcrumbHero({
 }: Props) {
   return (
     <section className="relative w-full overflow-hidden bg-black">
-      {/* Background image (shared across all pages) */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url(/images/BreadcrumbHero.jpg)" }}
-        aria-label={imageAlt}
-        role="img"
-      >
-        {/* Dark overlay for readability */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/BreadcrumbHero.jpg"
+          alt={imageAlt}
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          className="object-cover"
+        />
         <div className="absolute inset-0 bg-black/55" />
       </div>
 
-      {/* Content */}
       <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24">
         <Reveal>
           <nav

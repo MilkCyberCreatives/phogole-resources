@@ -1,15 +1,14 @@
-import type { Metadata } from "next";
-
 import BreadcrumbHero from "../../src/components/BreadcrumbHero";
 import Reveal from "../../src/components/ui/Reveal";
 import Link from "next/link";
+import { createPageMetadata, SITE_URL } from "../../src/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "FAQ | Phogole Resources",
+export const metadata = createPageMetadata({
+  title: "FAQ",
   description:
     "Frequently asked questions about Phogole Resources, our mining support services, safety standards, and how to engage our team.",
-  alternates: { canonical: "/faq" },
-};
+  path: "/faq",
+});
 
 const faqs = [
   {
@@ -34,10 +33,30 @@ const faqs = [
   },
 ];
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "@id": `${SITE_URL}/faq#faq`,
+  url: `${SITE_URL}/faq`,
+  mainEntity: faqs.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.a,
+    },
+  })),
+};
+
 export default function FAQPage() {
   return (
     <main className="min-h-screen bg-white">
-      {/* Breadcrumb Hero */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
+      />
       <BreadcrumbHero
         crumbs={[
           { label: "home", href: "/" },
@@ -48,9 +67,7 @@ export default function FAQPage() {
         imageAlt="Mining operations and field support"
       />
 
-      {/* FAQ Content */}
       <section className="relative bg-white">
-        {/* divider */}
         <div className="h-px w-full bg-black/10" />
 
         <div className="mx-auto max-w-4xl px-6 py-16 sm:py-20">
@@ -69,7 +86,6 @@ export default function FAQPage() {
             on-site work. If you need clarity beyond this, our team is ready to assist.
           </p>
 
-          {/* FAQ List */}
           <div className="mt-12 space-y-5">
             {faqs.map((item) => (
               <details
@@ -98,7 +114,6 @@ export default function FAQPage() {
         </div>
       </section>
 
-      {/* CTA Section (same as other pages) */}
       <section className="bg-white py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal>

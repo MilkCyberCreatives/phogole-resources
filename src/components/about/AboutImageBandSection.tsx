@@ -16,7 +16,6 @@ export default function AboutImageBandSection() {
                   src="/images/about/about-1.jpg"
                   alt="Field support work"
                   fill
-                  priority
                   sizes="(min-width: 640px) 33vw, 100vw"
                   className="object-cover transition-transform duration-500 ease-out hover:scale-[1.03] cursor-pointer"
                 />

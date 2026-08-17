@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-// Global layout components (use relative imports, no @)
 import TopBar from "../src/components/TopBar";
 import MainHeader from "../src/components/MainHeader";
 import Footer from "../src/components/FooterSection";
+import { SITE_URL } from "../src/lib/metadata";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -14,7 +14,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.phogoleresources.co.za"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Phogole Resources | Mining support services",
     template: "%s | Phogole Resources",
@@ -22,45 +22,18 @@ export const metadata: Metadata = {
   description:
     "Phogole Resources provides groundwater monitoring, minerals exploration support, and underground secondary support—delivered safely, professionally, and on time.",
   applicationName: "Phogole Resources",
-
   keywords: [
-    // Core
     "mining support services",
     "mining services South Africa",
-    "mine compliance reporting",
-    "site-ready mining teams",
-    "field execution mining",
-    "safety-first mining services",
-
-    // Water / groundwater / compliance
     "groundwater monitoring",
     "water quality monitoring",
     "borehole water sampling",
-    "mine water compliance",
-    "environmental monitoring services",
-
-    // Exploration
     "minerals exploration support",
-    "exploration sampling",
-    "geological field services",
     "sample collection and preparation",
-    "field sampling services",
-
-    // Beneficiation / processing
     "minerals beneficiation",
-    "mineral processing",
-    "processing plant support",
-
-    // Underground support
     "underground secondary support",
-    "underground support services",
-    "ground support",
-    "shotcrete support",
-    "rock support",
   ],
-
   alternates: { canonical: "/" },
-
   robots: {
     index: true,
     follow: true,
@@ -72,34 +45,25 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-
-  // Makes favicon more reliable across browsers
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
     shortcut: ["/icon.svg"],
     apple: ["/icon.svg"],
   },
-
-  // Optional but good for mobile experience
   appleWebApp: {
     title: "Phogole Resources",
     statusBarStyle: "default",
     capable: true,
   },
-
-  // Prevents Safari from auto-linking phone numbers (can mess with design)
   formatDetection: {
     telephone: false,
     address: false,
     email: false,
   },
-
-  // Add this after you verify the domain in Google Search Console
-  // verification: { google: "PASTE_GOOGLE_VERIFICATION_CODE_HERE" },
-
   openGraph: {
     type: "website",
-    url: "https://www.phogoleresources.co.za",
+    locale: "en_ZA",
+    url: SITE_URL,
     title: "Phogole Resources | Mining support services",
     description:
       "Groundwater monitoring, minerals exploration support, and underground secondary support—delivered safely, professionally, and on time.",
@@ -113,7 +77,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-
   twitter: {
     card: "summary_large_image",
     title: "Phogole Resources | Mining support services",
@@ -123,20 +86,64 @@ export const metadata: Metadata = {
   },
 };
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "Phogole Resources",
+      url: SITE_URL,
+      logo: `${SITE_URL}/brand/main_logo.svg`,
+      email: "info@phogoleresources.co.za",
+      telephone: "+27 83 712 7329",
+      foundingDate: "2024",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Driekop",
+        postalCode: "1129",
+        addressCountry: "ZA",
+      },
+      areaServed: {
+        "@type": "Country",
+        name: "South Africa",
+      },
+      contactPoint: {
+        "@type": "ContactPoint",
+        telephone: "+27 83 712 7329",
+        email: "info@phogoleresources.co.za",
+        contactType: "customer service",
+        areaServed: "ZA",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "Phogole Resources",
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      inLanguage: "en-ZA",
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en-ZA">
       <body className="min-h-screen bg-white text-[#4a4746]">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+          }}
+        />
         <TopBar />
         <MainHeader />
-
-        {/* Page content */}
         {children}
-
         <Footer />
       </body>
     </html>

@@ -17,10 +17,15 @@ type FormState = {
   phone: string;
   service: string;
   message: string;
-  website: string; // honeypot
+  website: string;
 };
 
 type Errors = Partial<Record<keyof FormState, string>>;
+
+type ApiResponse = {
+  error?: string;
+  message?: string;
+};
 
 export default function ContactForm() {
   const [submitting, setSubmitting] = useState(false);
@@ -64,7 +69,6 @@ export default function ContactForm() {
     if (!message) nextErrors.message = "Message is required";
     else if (message.length < 10) nextErrors.message = "Message must be at least 10 characters";
 
-    // Honeypot (bots)
     if (website !== "") nextErrors.website = "Spam detected";
 
     return {
@@ -89,7 +93,6 @@ export default function ContactForm() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // Touch required fields (so errors show)
     setTouched({ name: true, email: true, message: true });
 
     if (!isValid) {
@@ -101,7 +104,6 @@ export default function ContactForm() {
     setStatus({ type: "loading", message: "sending..." });
 
     try {
-      // include website (honeypot) so your API can detect bots
       const submissionData = {
         name: form.name.trim(),
         email: form.email.trim(),
@@ -117,10 +119,10 @@ export default function ContactForm() {
         body: JSON.stringify(submissionData),
       });
 
-      const data: any = await res.json().catch(() => ({}));
+      const data: ApiResponse = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const msg = data?.error || data?.message || `Error ${res.status}: Please try again.`;
+        const msg = data.error || data.message || `Error ${res.status}: Please try again.`;
         throw new Error(msg);
       }
 
@@ -145,10 +147,7 @@ export default function ContactForm() {
           ? error.message
           : "Network error. Please try again or email info@phogoleresources.co.za";
 
-      setStatus({
-        type: "error",
-        message,
-      });
+      setStatus({ type: "error", message });
     } finally {
       setSubmitting(false);
     }
@@ -156,7 +155,6 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={onSubmit} className="mt-10 grid gap-7" noValidate>
-      {/* Honeypot (hidden from users, bots may fill it) */}
       <div className="hidden" aria-hidden="true">
         <label htmlFor="website">Leave this field empty</label>
         <input
@@ -174,19 +172,29 @@ export default function ContactForm() {
       <div className="grid gap-7 sm:grid-cols-2">
         <div className="grid gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60">
+            <label
+              htmlFor="contact-name"
+              className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60"
+            >
               full name *
             </label>
             {errors.name && touched.name && (
-              <span className="text-xs text-red-500">{errors.name}</span>
+              <span id="contact-name-error" className="text-xs text-red-500">
+                {errors.name}
+              </span>
             )}
           </div>
           <input
+            id="contact-name"
+            name="name"
+            autoComplete="name"
             className={inputClasses("name")}
             placeholder="your name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             onBlur={() => handleBlur("name")}
+            aria-invalid={Boolean(errors.name && touched.name)}
+            aria-describedby={errors.name && touched.name ? "contact-name-error" : undefined}
             required
             disabled={submitting}
           />
@@ -194,20 +202,30 @@ export default function ContactForm() {
 
         <div className="grid gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60">
+            <label
+              htmlFor="contact-email"
+              className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60"
+            >
               email *
             </label>
             {errors.email && touched.email && (
-              <span className="text-xs text-red-500">{errors.email}</span>
+              <span id="contact-email-error" className="text-xs text-red-500">
+                {errors.email}
+              </span>
             )}
           </div>
           <input
+            id="contact-email"
+            name="email"
+            autoComplete="email"
             className={inputClasses("email")}
             placeholder="your email"
             type="email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             onBlur={() => handleBlur("email")}
+            aria-invalid={Boolean(errors.email && touched.email)}
+            aria-describedby={errors.email && touched.email ? "contact-email-error" : undefined}
             required
             disabled={submitting}
           />
@@ -216,10 +234,17 @@ export default function ContactForm() {
 
       <div className="grid gap-7 sm:grid-cols-2">
         <div className="grid gap-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60">
+          <label
+            htmlFor="contact-phone"
+            className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60"
+          >
             phone
           </label>
           <input
+            id="contact-phone"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
             className="h-11 w-full border-b border-black/15 bg-transparent px-0 text-sm text-brand-secondary outline-none placeholder:text-brand-secondary/35 focus:border-brand-primary transition"
             placeholder="optional"
             value={form.phone}
@@ -229,10 +254,15 @@ export default function ContactForm() {
         </div>
 
         <div className="grid gap-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60">
+          <label
+            htmlFor="contact-service"
+            className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60"
+          >
             service
           </label>
           <select
+            id="contact-service"
+            name="service"
             className="h-11 w-full border-b border-black/15 bg-transparent px-0 text-sm text-brand-secondary outline-none focus:border-brand-primary transition cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             value={form.service}
             onChange={(e) => setForm({ ...form, service: e.target.value })}
@@ -252,14 +282,21 @@ export default function ContactForm() {
 
       <div className="grid gap-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60">
+          <label
+            htmlFor="contact-message"
+            className="text-xs font-bold uppercase tracking-wider text-brand-secondary/60"
+          >
             message *
           </label>
           {errors.message && touched.message && (
-            <span className="text-xs text-red-500">{errors.message}</span>
+            <span id="contact-message-error" className="text-xs text-red-500">
+              {errors.message}
+            </span>
           )}
         </div>
         <textarea
+          id="contact-message"
+          name="message"
           className={`min-h-[130px] w-full resize-none border-b bg-transparent px-0 py-2 text-sm text-brand-secondary outline-none placeholder:text-brand-secondary/35 transition ${
             errors.message && touched.message
               ? "border-red-500 focus:border-red-500"
@@ -269,6 +306,8 @@ export default function ContactForm() {
           value={form.message}
           onChange={(e) => setForm({ ...form, message: e.target.value })}
           onBlur={() => handleBlur("message")}
+          aria-invalid={Boolean(errors.message && touched.message)}
+          aria-describedby={errors.message && touched.message ? "contact-message-error" : undefined}
           required
           disabled={submitting}
         />
@@ -300,6 +339,8 @@ export default function ContactForm() {
 
       {status.type !== "idle" && status.message && (
         <div
+          role="status"
+          aria-live="polite"
           className={`rounded-lg p-4 text-sm ${
             status.type === "success"
               ? "bg-green-50 text-green-800 border border-green-200"

@@ -1,14 +1,11 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "../src/lib/metadata";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://www.phogoleresources.co.za";
-
-  // Add more pages here as you build them (about, services, projects, insights, contact)
-  const routes = ["", "/about", "/services", "/projects", "/insights", "/contact"];
+  const routes = ["", "/about", "/services", "/projects", "/faq", "/contact"];
 
   return routes.map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(),
+    url: `${SITE_URL}${route}`,
     changeFrequency: "monthly",
     priority: route === "" ? 1 : 0.7,
   }));

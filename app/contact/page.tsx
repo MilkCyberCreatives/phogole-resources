@@ -1,14 +1,13 @@
-import type { Metadata } from "next";
-
 import BreadcrumbHero from "../../src/components/BreadcrumbHero";
 import ContactSection from "../../src/components/contact/ContactSection";
+import { createPageMetadata } from "../../src/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Contact | Phogole Resources",
+export const metadata = createPageMetadata({
+  title: "Contact",
   description:
     "Contact Phogole Resources for mining support services. Send a message and our team will respond with clear next steps.",
-  alternates: { canonical: "/contact" },
-};
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

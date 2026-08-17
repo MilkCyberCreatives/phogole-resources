@@ -47,7 +47,7 @@ export default function AboutHeroSection() {
               >
                 <div className="relative aspect-[16/11] w-full">
                   <Image
-                    src="/images/about/about-hero.jpg"
+                    src="/images/about/about-hero.JPG"
                     alt="Phogole Resources mining support operations"
                     fill
                     className="object-cover"
