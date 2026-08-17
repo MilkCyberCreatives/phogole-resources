@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
-
 import BreadcrumbHero from "../../src/components/BreadcrumbHero";
 import AboutOverviewSection from "../../src/components/about/AboutOverviewSection";
 import AboutImageBandSection from "../../src/components/about/AboutImageBandSection";
 import AboutCtaSection from "../../src/components/about/AboutCtaSection";
+import { createPageMetadata } from "../../src/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "About | Phogole Resources",
+export const metadata = createPageMetadata({
+  title: "About",
   description:
     "Learn about Phogole Resources — safety-first mining support services with disciplined field execution and clear reporting.",
-  alternates: { canonical: "/about" },
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (
