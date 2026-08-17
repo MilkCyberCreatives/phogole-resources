@@ -39,6 +39,7 @@ jobs:
       - name: Start production server
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+          PORT: "3000"
         run: |
           npm start > /tmp/phogole-next.log 2>&1 &
           echo $! > /tmp/phogole-next.pid
