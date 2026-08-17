@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
-
 import BreadcrumbHero from "../../src/components/BreadcrumbHero";
 import ProjectsShowcaseSection from "../../src/components/projects/ProjectsShowcaseSection";
 import ProjectsTimelineSection from "../../src/components/projects/ProjectsTimelineSection";
 import ProjectsCtaSection from "../../src/components/projects/ProjectsCtaSection";
+import { createPageMetadata } from "../../src/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Projects | Phogole Resources",
+export const metadata = createPageMetadata({
+  title: "Projects",
   description:
     "Explore representative project workstreams and delivery capability from Phogole Resources across mining support services.",
-  alternates: { canonical: "/projects" },
-};
+  path: "/projects",
+});
 
 export default function ProjectsPage() {
   return (
