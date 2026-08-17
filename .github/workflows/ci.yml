@@ -51,6 +51,7 @@ jobs:
           cat /tmp/phogole-next.log
           exit 1
 
+      # These checks validate the production build without sending a real enquiry email.
       - name: Smoke-test public routes and search metadata
         run: |
           set -euo pipefail
