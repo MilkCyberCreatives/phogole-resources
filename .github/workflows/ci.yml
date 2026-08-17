@@ -35,3 +35,66 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Start production server
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: |
+          npm start > /tmp/phogole-next.log 2>&1 &
+          echo $! > /tmp/phogole-next.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/phogole-next.log
+          exit 1
+
+      - name: Smoke-test public routes and search metadata
+        run: |
+          set -euo pipefail
+
+          for path in / /about /services /projects /faq /contact /robots.txt /sitemap.xml; do
+            status=$(curl --silent --output /tmp/response --write-out "%{http_code}" "http://127.0.0.1:3000${path}")
+            test "$status" = "200" || { echo "${path} returned ${status}"; cat /tmp/response; exit 1; }
+          done
+
+          status=$(curl --silent --output /tmp/not-found --write-out "%{http_code}" "http://127.0.0.1:3000/technical-smoke-test-missing-route")
+          test "$status" = "404" || { echo "Expected 404, got ${status}"; exit 1; }
+
+          curl --fail --silent http://127.0.0.1:3000/about > /tmp/about.html
+          grep --fixed-strings '<title>About | Phogole Resources</title>' /tmp/about.html
+          grep --fixed-strings 'https://www.phogoleresources.co.za/about' /tmp/about.html
+
+          curl --fail --silent http://127.0.0.1:3000/services > /tmp/services.html
+          grep --fixed-strings 'application/ld+json' /tmp/services.html
+          grep --fixed-strings 'groundwater monitoring' /tmp/services.html
+
+          curl --fail --silent http://127.0.0.1:3000/faq > /tmp/faq.html
+          grep --fixed-strings 'FAQPage' /tmp/faq.html
+
+          curl --fail --silent http://127.0.0.1:3000/sitemap.xml > /tmp/sitemap.xml
+          grep --fixed-strings 'https://www.phogoleresources.co.za/faq' /tmp/sitemap.xml
+          if grep --fixed-strings '/insights' /tmp/sitemap.xml; then
+            echo "Unexpected /insights entry remains in sitemap"
+            exit 1
+          fi
+
+          curl --fail --silent http://127.0.0.1:3000/robots.txt > /tmp/robots.txt
+          grep --fixed-strings 'Disallow: /api/' /tmp/robots.txt
+          grep --fixed-strings 'https://www.phogoleresources.co.za/sitemap.xml' /tmp/robots.txt
+
+          status=$(curl --silent --output /tmp/contact-api --write-out "%{http_code}" \
+            --request POST \
+            --header 'Content-Type: application/json' \
+            --data '{"name":"","email":"","message":""}' \
+            http://127.0.0.1:3000/api/contact)
+          test "$status" = "400" || { echo "Expected contact validation 400, got ${status}"; cat /tmp/contact-api; exit 1; }
+
+      - name: Stop production server
+        if: always()
+        run: |
+          if [ -f /tmp/phogole-next.pid ]; then
+            kill "$(cat /tmp/phogole-next.pid)" 2>/dev/null || true
+          fi
