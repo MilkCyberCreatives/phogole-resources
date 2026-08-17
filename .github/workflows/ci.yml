@@ -39,6 +39,7 @@ jobs:
       - name: Start production server
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+          PORT: "3000"
         run: |
           npm start > /tmp/phogole-next.log 2>&1 &
           echo $! > /tmp/phogole-next.pid
@@ -51,6 +52,7 @@ jobs:
           cat /tmp/phogole-next.log
           exit 1
 
+      # These checks validate the production build without sending a real enquiry email.
       - name: Smoke-test public routes and search metadata
         run: |
           set -euo pipefail
